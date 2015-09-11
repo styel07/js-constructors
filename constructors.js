@@ -87,6 +87,7 @@ function Spellcaster(name, health, mana) {
   this.mana = mana;
   this.isAlive = true;
 }
+
   /**
    * @method inflictDamage
    *
@@ -98,6 +99,21 @@ function Spellcaster(name, health, mana) {
    * @param  {number} damage  Amount of damage to deal to the spellcaster
    */
 
+Spellcaster.prototype.inflictDamage = function(damage) {
+
+  if (this.health < 0) {
+    this.isAlive = false;
+
+  } else {
+    // fatal blow
+    this.health -= damage;
+
+    if (this.health <= 0) {
+      this.health = 0;
+      this.isAlive = false;
+    }
+  }
+};
   /**
    * @method spendMana
    *
@@ -108,6 +124,15 @@ function Spellcaster(name, health, mana) {
    * @return {boolean} success  Whether mana was successfully spent.
    */
 
+Spellcaster.prototype.spendMana = function(cost) {
+
+  if (this.mana >= cost) {
+    this.mana -= cost;
+    return true;
+  } else {
+    return false;
+  }
+};
   /**
    * @method invoke
    *
@@ -134,3 +159,28 @@ function Spellcaster(name, health, mana) {
    * @param  {Spellcaster} target         The spell target to be inflicted.
    * @return {boolean}                    Whether the spell was successfully cast.
    */
+
+Spellcaster.prototype.invoke = function(spell, target) {
+  // checks if spell is either undefined or null
+  if (spell === undefined || spell === null) {
+    return false;
+  }
+
+  // Check if its a Regular spell, regular spells have no target
+  if (spell instanceof DamageSpell && !(target instanceof Spellcaster)) {
+    return false;
+  } else { // this is a spell, cast it then deduct mana
+    if (this.spendMana(spell.cost)) {
+      return true;
+    }
+  }
+
+  // Check if spell is a Damage Spell, DS has a spell and target
+  if (spell instanceof DamageSpell && target instanceof Spellcaster) {
+    if (this.spendMana(spell.cost)) {
+      target.inflictDamage(spell.damage);
+      return true;
+    }
+  }
+  return false;
+};
